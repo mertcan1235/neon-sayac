@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEON | Sayaç</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="card">
+    <h1>NEON<span>.</span></h1>
+    <p class="subtitle">TIME CONTROL</p>
+
+    <div id="timer">00:00.00</div>
+    <p id="status">HAZIR</p>
+
+    <div class="buttons">
+      <button class="start" onclick="startTimer()">▶ Başlat</button>
+      <button onclick="pauseTimer()">Ⅱ Duraklat</button>
+      <button onclick="resetTimer()">↻ Sıfırla</button>
+    </div>
+
+    <p class="hint">SPACE: Başlat / Duraklat · R: Sıfırla</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

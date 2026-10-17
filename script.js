@@ -1,6 +1,8 @@
 
 const timer = document.getElementById("timer");
 const statusText = document.getElementById("status");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+const fullscreenIcon = document.getElementById("fullscreenIcon");
 
 let elapsed = Number(localStorage.getItem("neonElapsed")) || 0;
 let running = localStorage.getItem("neonRunning") === "true";
@@ -32,13 +34,18 @@ function update() {
   saveState();
 }
 
+function setStatus(text, color) {
+  statusText.textContent = text;
+  statusText.style.color = color;
+}
+
 function startTimer() {
   if (running) return;
 
   startedAt = Date.now();
   running = true;
-  statusText.textContent = "ÇALIŞIYOR";
-  statusText.style.color = "#00f5ff";
+  setStatus("ÇALIŞIYOR", "#00f5ff");
+
   saveState();
   update();
 }
@@ -49,8 +56,8 @@ function pauseTimer() {
   elapsed = getElapsed();
   running = false;
   startedAt = 0;
-  statusText.textContent = "DURAKLATILDI";
-  statusText.style.color = "#ae8bff";
+
+  setStatus("DURAKLATILDI", "#ae8bff");
   saveState();
   update();
 }
@@ -60,28 +67,97 @@ function resetTimer() {
   elapsed = 0;
   startedAt = 0;
 
-  statusText.textContent = "SIFIRLANDI";
-  statusText.style.color = "#9caec9";
-
+  setStatus("SIFIRLANDI", "#9caec9");
   saveState();
   update();
 }
 
+/* Tam ekran kontrolü */
+function isFullscreen() {
+  return Boolean(
+    document.fullscreenElement ||
+    document.webkitFullscreenElement
+  );
+}
+
+async function toggleFullscreen() {
+  try {
+    if (isFullscreen()) {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+      return;
+    }
+
+    const target = document.documentElement;
+
+    if (target.requestFullscreen) {
+      await target.requestFullscreen();
+    } else if (target.webkitRequestFullscreen) {
+      target.webkitRequestFullscreen();
+    } else {
+      setStatus("TAM EKRAN DESTEKLENMİYOR", "#ffad66");
+    }
+  } catch (error) {
+    console.warn("Tam ekran açılamadı:", error);
+    setStatus("TAM EKRAN AÇILAMADI", "#ffad66");
+  }
+}
+
+function updateFullscreenButton() {
+  const active = isFullscreen();
+
+  fullscreenBtn.setAttribute(
+    "aria-label",
+    active ? "Tam ekrandan çık" : "Tam ekrana geç"
+  );
+
+  fullscreenBtn.title = active ? "Tam ekrandan çık" : "Tam ekran";
+
+  if (active) {
+    // Köşeler dışarı açılan simge: tam ekrandan çık
+    fullscreenIcon.innerHTML = `
+      <path d="M8 3v5H3"/>
+      <path d="M16 3v5h5"/>
+      <path d="M3 16h5v5"/>
+      <path d="M21 16h-5v5"/>
+    `;
+  } else {
+    // Köşeler dışarı bakan simge: tam ekrana geç
+    fullscreenIcon.innerHTML = `
+      <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+      <path d="M16 3h3a2 2 0 0 1 2 2v3"/>
+      <path d="M21 16v3a2 2 0 0 1-2 2h-3"/>
+      <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+    `;
+  }
+}
+
+document.addEventListener("fullscreenchange", updateFullscreenButton);
+document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
+
 document.addEventListener("keydown", (event) => {
-  if (event.code === "Space") {
+  // Boşluk tuşuyla sayfayı kaydırma
+  if (event.code === "Space" && event.target.tagName !== "BUTTON") {
     event.preventDefault();
     running ? pauseTimer() : startTimer();
   }
 
-  if (event.key.toLowerCase() === "r") {
+  if (
+    event.key.toLowerCase() === "r" &&
+    event.target.tagName !== "INPUT" &&
+    event.target.tagName !== "TEXTAREA"
+  ) {
     resetTimer();
   }
 });
 
 setInterval(update, 30);
 update();
+updateFullscreenButton();
 
 if (running) {
-  statusText.textContent = "ÇALIŞIYOR";
-  statusText.style.color = "#00f5ff";
+  setStatus("ÇALIŞIYOR", "#00f5ff");
 }
